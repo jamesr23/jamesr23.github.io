@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+	<title>Econ FED Project</title>
+    <meta charset='utf-8'>
+<head>
+	<style>
+        * { user-select: none }
+        body { background-color: #6a7c94;}
+        body > * { margin: 10px; }
+        #container { position: relative; width: 90vw; height: 90vh; border: 1px solid black; }
+        #bg { position: absolute; z-index: 0; width: 100%; height: 100%; }
+        #scene-selector-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+            z-index: 2;
+        }
+        #scene-selector-options {
+            position: absolute;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        #scene-selector-options > p:hover { color: blue; }
+        #scene-selector-options > p { font-size: 30px; }
+        #scene-selector-container > img { width: 100%, height: 100%; }
+        #note-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+            z-index: 2;
+        }
+        #note-content {
+            font-size: 8px;
+            position: absolute;
+            top: 4%;
+            left: 12%;
+            width: 76%;
+        }
+
+        #log-container {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: left;
+            z-index: 1;
+            bottom: 20px;
+            left: 10%;
+            width: 80%;
+            height: 100px;
+            border: 1px solid black;
+            background-color: white;
+        }
+        #log { margin: 20px; }
+		canvas { border: 1px solid black; }
+		footer { text-align:right; }
+
+	</style>
+</head>
+<body>
+	<header>Econ FED Game v1</header>
+    <div id='container'>
+        <img id='bg' draggable='false'>
+        <div id='scene-selector-container'>
+            <img src='sources/scene-selector.png' draggable='false'>
+            <div id='scene-selector-options'></div>
+        </div>
+        <div id='note-container'>
+            <img src='sources/notebook.png' draggable='false'>
+            <div id='note-content'></div>
+        </div>
+        <div id='log-container'><p id='log'></p></div>
+    </div>
+	<footer>made by</footer>
+	<script type="text/javascript">
+	const scenes = {
+            intro: {
+                complete: false,
+                frames: [
+                    {
+                        background: 'sources/federal-reserve.webp',
+                        text: [
+                            'Guide: Welcome to the Federal Reserve, the central bank of the United States (click to continue)',
+                            'Guide: The Federal Reserve was founded in 1913, with the goal of promoting effective operation of the U.S. economy.',
+                            'Guide: In todays tour, you will be taken on through the the federal bank and learn about its structure, its functions, and the tools which it utilizes.',
+                            'Guide: As you may already know, to progress dialogue, click anywhere',
+                            'Guide: Each frame takes place in a scenes, which contain a specific category of information.',
+                            'Press [n] to view your notes, and [s] to select a scene'
+                        ]
+                    }
+                ]
+            },
+            structure: {
+                complete: false,
+                frames: [
+                    {
+                        background: 'sources/structure_1.jpg',
+                        text: [
+                            'This is the current stucture of the Federal Reserve',
+                            'There are three key entities in the Federal Reserve System: the Board of Governors, the Federal Reserve Banks (Reserve Banks), and the Federal Open Market Committee (FOMC).',
+                        ]
+                    },
+                    {
+                        background: 'sources/board_of_governers.jpg',
+                        text: [
+                            'Here you can see the Board of Governors discussing the financial stability of the country (be quiet)',
+                            'There are 7 members in the Board of Governers, each who is appointed by the President with the advice and consent of the Senate.',
+                            'The Board of Governors reports directly to the congress and provides general guidance for the System and oversees the 12 Reserve Banks.',
+                        ]
+                    },
+                    {
+                        background: 'sources/structure_2.jpg',
+                        text: [
+                            'This is a maps showing all 12 regions of the federal banks',
+                            'The cities in which the banks reside are Boston, New York, Philadelphia, Cleveland, Richmond, Atlanta, Chicago, St. Louis, Minneapolis, Kansas City, Dallas, and San Francisco.',
+                            'Each Bank has a president and function independantly under supervision.',
+                            'These banks can be thought of as the arms and legs of the federal reserve system.'
+                        ]
+                    },
+                    {
+                        background: 'sources/fomc.jpg',
+                        text: [
+                            'This meeting is one of the Federal Open Market Committee, aka FOMC, is another important group which assists the economy.',
+                            'The FOMC consists of the 7 members of Board of Governers, the president of the New York Federal Reserve bank, and 4 out of the remaining 11 Federal Reserve Bank Presidents.',
+                            'The FOMC holds eight scheduled meetings per year, at which the Committee reviews economic and financial conditions, determines the appropriate stance of monetary policy, and assesses the risks to its long-run goals of price stability and sustainable economic growth.'
+                        ]
+                    }
+
+                ]
+            },
+            functions: {
+                complete: false,
+                frames: [
+                    {
+                        background: 'sources/board_of_governers.jpg',
+                        text: [
+                            'The Federal Reserve conducts 5 main functions. (from federalreserve.gov) It',
+                            '1. "conducts the nation\'s monetary policy to promote maximum employment, stable prices, and moderate long-term interest rates in the U.S. economy",',
+                            '2. "promotes the stability of the financial system and seeks to minimize and contain systemic risks through active monitoring and engagement in the U.S. and abroad",',
+                            '3. "promotes the safety and soundness of individual financial institutions and monitors their impact on the financial system as a whole",',
+                            '4. "fosters payment and settlement system safety and efficiency through services to the banking industry and the U.S. government that facilitate U.S.-dollar transactions and payments", and',
+                            '5. "promotes consumer protection and community development through consumer-focused supervision and examination, research and analysis of emerging consumer issues and trends, community economic development activities, and the administration of consumer laws and regulations".'
+                        ]
+                    }
+                ]
+            },
+            tools: {
+                complete: false,
+                frames: [
+                    {
+                        background: 'sources/office.jpg',
+                        text: [
+                            'This is an office in which the FED proceeds with monetary policy.',
+                            'There are 3 tools which the FED uses:',
+                            '1. Open Market Operations (OMO), conducted by the FOMC.',
+                            'The OMO is the selling and purchasing of securities by the FED. The FED will buy to increase the amount of money in the banks, and sell to decrease the amount of money in banks.',
+                            '2. Discount Rate, conducted by the Board of Governors.',
+                            'The Discount rate affects the liquidity of the money and is used to stabilize the economy',
+                            '3. Reserve Requirements, also controlled by the Board of Governors.',
+                            'The Reserve Requirements is the proportion of money that banks are required to have on hand. The Reserve requirement helps assure that the banks can give customers their money, and also affects how much banks loan, thus affecting the supply of money in the economy.'
+                        ]
+                    }
+                ]
+            }
+		};
+		
+        const dom = {
+            bg: null,
+            log: null,
+            scene_selector: null,
+            note: null,
+            note_content: null
+        };
+
+        let scene;
+        let scene_n;
+        let frame_progress = 0;
+        let text_progress = 0;
+        let is_selecting_scene = false;
+        let is_viewing_note = false;
+		
+		const render_lore = text => {
+            dom.log.innerText = text;
+        };
+
+        const render_image = img_src => {
+            dom.bg.src = img_src
+        }
+		
+        const select_scene = n => {
+            dom.scene_selector.style.display = 'none';
+            is_selecting_scene = false;
+            frame_progress = 0;
+            text_progress = 0;
+            scene = scenes[n]; 
+            scene_n = n;
+            render_image(scene.frames[frame_progress].background)
+            render_lore(scene.frames[frame_progress].text[text_progress])
+        }
+
+		window.onload = () => {
+
+            dom.container = document.querySelector('#container');
+            dom.bg = document.querySelector('#bg');
+            dom.log = document.querySelector('#log');
+            dom.scene_selector = document.querySelector('#scene-selector-container');
+            dom.note = document.querySelector('#note-container')
+            dom.note_content = document.querySelector('#note-content')
+
+            let scene_selector_container = document.querySelector('#scene-selector-options');
+            for (let scene_name in scenes) {
+                let p = document.createElement('p');
+                p.innerText = scene_name;
+                p.addEventListener('click', e => {
+                    select_scene(scene_name)
+                    e.stopPropagation();
+                });
+
+                scene_selector_container.appendChild(p);
+            }
+
+            select_scene('intro')
+		};
+
+        window.addEventListener('click', e => {
+            if (is_selecting_scene) return;
+            if (++text_progress < scene.frames[frame_progress].text.length)
+                render_lore(scene.frames[frame_progress].text[text_progress]);
+            else if (frame_progress + 1 < scene.frames.length) {
+                frame_progress += 1;
+                text_progress = 0;
+                render_image(scene.frames[frame_progress].background);
+                render_lore(scene.frames[frame_progress].text[text_progress]);
+            } else {
+                if (!scene.complete && scene_n != 'intro') {
+                    scene.complete = true;
+                    dom.note_content.innerHTML += '<h3><u>' + scene_n + '</u></h3>'
+                    for (let frame of scene.frames)
+                        for (let text of frame.text)
+                            dom.note_content.innerHTML += '<p>' + text + '</p>'
+                }
+            }
+        });
+
+        window.addEventListener('keydown', e => {
+            if (e.key == 's') {
+                if (is_viewing_note) return;
+                if (!is_selecting_scene) {
+                    let se = new Audio('sources/paper.m4a');
+                    se.play();
+                    is_selecting_scene = true;
+                    dom.scene_selector.style.display = 'flex';
+                }
+            } else if (e.key == 'n') {
+                if (is_selecting_scene) return;
+                is_viewing_note = ! is_viewing_note;
+                if (is_viewing_note)
+                    dom.note.style.display = 'flex';
+                else
+                    dom.note.style.display = 'none';
+
+                let se = new Audio('sources/paper.m4a');
+                se.play();
+            }
+        });
+    
+	</script>
+</body
+</html>
